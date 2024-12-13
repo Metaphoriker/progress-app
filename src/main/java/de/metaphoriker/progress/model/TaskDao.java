@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.metaphoriker.progress.model.persistence.TaskAdapter;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 
 public class TaskDao {
 
-    private final static Path TASK_FOLDER = Paths.get(System.getenv("APPDATA"), "tasks");
+    private final static Path TASK_FOLDER = Paths.get(System.getenv("APPDATA"), "progress-app" + File.separator + "tasks");
 
     private final static Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Task.class, new TaskAdapter()).create();
