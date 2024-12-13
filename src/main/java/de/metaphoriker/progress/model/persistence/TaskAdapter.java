@@ -19,7 +19,7 @@ public class TaskAdapter implements JsonSerializer<Task>, JsonDeserializer<Task>
     public JsonElement serialize(Task src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", src.id());
-        jsonObject.addProperty("name", src.name());
+        jsonObject.addProperty("description", src.description());
         jsonObject.addProperty("state", src.state().name());
         jsonObject.add("subTasks", context.serialize(src.subTasks()));
         return jsonObject;
@@ -30,7 +30,7 @@ public class TaskAdapter implements JsonSerializer<Task>, JsonDeserializer<Task>
             throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
         long id = jsonObject.get("id").getAsLong();
-        String name = jsonObject.get("name").getAsString();
+        String name = jsonObject.get("description").getAsString();
         TaskState state = TaskState.valueOf(jsonObject.get("state").getAsString());
         List<Long> subTasks = context.deserialize(jsonObject.get("subTasks"), List.class);
         return new Task(id, name, subTasks, state);
