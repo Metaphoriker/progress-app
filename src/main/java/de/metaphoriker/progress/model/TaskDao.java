@@ -3,7 +3,6 @@ package de.metaphoriker.progress.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.metaphoriker.progress.model.persistence.TaskAdapter;
-import de.metaphoriker.progress.model.util.DtoMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,21 +48,30 @@ public class TaskDao {
         return tasks;
     }
 
+    public long getLatestId() {
+        try (Stream<Path> files = Files.list(TASK_FOLDER)) {
+            return files.filter(file -> file.toString().endsWith(".json"))
+                    .mapToLong(file -> Long.parseLong(file.getFileName().toString().replace(".json", "")))
+                    .max()
+                    .orElse(0);
+        } catch (IOException e) {
+            throw new RuntimeException("Fehler beim Ermitteln der höchsten ID", e);
+        }
+    }
+
     private Task loadTaskFromFile(Path file) {
         try {
             String json = Files.readString(file);
-            TaskDto taskDto = GSON.fromJson(json, TaskDto.class);
-            return DtoMapper.map(taskDto, Task.class);
+            return GSON.fromJson(json, Task.class);
         } catch (IOException e) {
             throw new RuntimeException("Fehler beim Laden der Task aus Datei: " + file.getFileName(), e);
         }
     }
 
     private void saveToFile(Task task) {
-        TaskDto taskDto = DtoMapper.map(task, TaskDto.class);
         Path taskFile = createFile(task);
         try {
-            Files.writeString(taskFile, GSON.toJson(taskDto));
+            Files.writeString(taskFile, GSON.toJson(task));
         } catch (IOException e) {
             throw new RuntimeException("Fehler beim Schreiben der Task in Datei: " + taskFile.getFileName(), e);
         }

@@ -8,7 +8,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TaskServiceTest {
 
@@ -25,7 +26,7 @@ class TaskServiceTest {
 
     @Test
     void add_shouldAddTaskToRepositoryAndSave() {
-        Task task = new Task(1, "Task 1", List.of(), TaskState.OPEN);
+        Task task = taskService.createTask("Task 1");
         taskService.add(task);
         verify(taskRepository).addTask(task);
         verify(taskDao).save(task);
@@ -33,7 +34,7 @@ class TaskServiceTest {
 
     @Test
     void delete_shouldRemoveTaskFromRepositoryAndDelete() {
-        Task task = new Task(1, "Task 1", List.of(), TaskState.OPEN);
+        Task task = taskService.createTask("Task 1");
         taskService.delete(task);
         verify(taskRepository).removeTask(task);
         verify(taskDao).delete(task);
@@ -41,21 +42,21 @@ class TaskServiceTest {
 
     @Test
     void completeTask_shouldCompleteTaskAndUpdateRepositoryAndStorage() {
-        Task task = new Task(1, "Task 1", List.of(), TaskState.OPEN);
+        Task task = taskService.createTask("Task 1");
         taskService.completeTask(task);
 
         verify(taskRepository).removeTask(task);
         verify(taskDao).delete(task);
 
-        Task completedTask = new Task(1, "Task 1", List.of(), TaskState.DONE);
+        Task completedTask = task.complete();
         verify(taskRepository).addTask(completedTask);
         verify(taskDao).save(completedTask);
     }
 
     @Test
     void loadAll_shouldLoadTasksAndAddToRepository() {
-        Task task1 = new Task(1, "Task 1", List.of(), TaskState.OPEN);
-        Task task2 = new Task(2, "Task 2", List.of(), TaskState.DONE);
+        Task task1 = taskService.createTask("Task 1");
+        Task task2 = taskService.createTask("Task 2").complete();
         when(taskDao.load()).thenReturn(List.of(task1, task2));
 
         taskService.loadAll();
@@ -66,9 +67,9 @@ class TaskServiceTest {
 
     @Test
     void isTaskComplete_shouldReturnTrue_whenTaskAndSubtasksAreComplete() {
-        Task subTask1 = new Task(2, "Subtask 1", List.of(), TaskState.DONE);
-        Task subTask2 = new Task(3, "Subtask 2", List.of(), TaskState.DONE);
-        Task task = new Task(1, "Task 1", List.of(2L, 3L), TaskState.DONE);
+        Task subTask1 = taskService.createTask("Subtask 1").complete();
+        Task subTask2 = taskService.createTask("Subtask 2").complete();
+        Task task = taskService.createTask("Task 1").complete();
 
         when(taskRepository.getTask(2L)).thenReturn(subTask1);
         when(taskRepository.getTask(3L)).thenReturn(subTask2);
@@ -78,17 +79,18 @@ class TaskServiceTest {
 
     @Test
     void isTaskComplete_shouldReturnFalse_whenTaskIsDoneButSubtaskIsNot() {
-        Task subTask1 = new Task(2, "Subtask 1", List.of(), TaskState.OPEN);
-        Task task = new Task(1, "Task 1", List.of(2L), TaskState.DONE);
+        Task subTask1 = taskService.createTask("Subtask 1");
+        Task task = taskService.createTask("Task 1").complete();
+        task.addSubTask(subTask1);
 
-        when(taskRepository.getTask(2L)).thenReturn(subTask1);
+        when(taskRepository.getTask(1L)).thenReturn(subTask1);
 
         assertFalse(taskService.isTaskComplete(task));
     }
 
     @Test
     void isTaskComplete_shouldReturnFalse_whenTaskIsNotDone() {
-        Task task = new Task(1, "Task 1", List.of(), TaskState.OPEN);
+        Task task = taskService.createTask("Task 1");
         assertFalse(taskService.isTaskComplete(task));
     }
 }

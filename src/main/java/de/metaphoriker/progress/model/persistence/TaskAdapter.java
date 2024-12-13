@@ -11,6 +11,7 @@ import de.metaphoriker.progress.model.Task;
 import de.metaphoriker.progress.model.TaskState;
 
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.List;
 
 public class TaskAdapter implements JsonSerializer<Task>, JsonDeserializer<Task> {
@@ -22,6 +23,7 @@ public class TaskAdapter implements JsonSerializer<Task>, JsonDeserializer<Task>
         jsonObject.addProperty("description", src.description());
         jsonObject.addProperty("state", src.state().name());
         jsonObject.add("subTasks", context.serialize(src.subTasks()));
+        jsonObject.addProperty("instant", src.instant().toEpochMilli());
         return jsonObject;
     }
 
@@ -33,6 +35,8 @@ public class TaskAdapter implements JsonSerializer<Task>, JsonDeserializer<Task>
         String name = jsonObject.get("description").getAsString();
         TaskState state = TaskState.valueOf(jsonObject.get("state").getAsString());
         List<Long> subTasks = context.deserialize(jsonObject.get("subTasks"), List.class);
-        return new Task(id, name, subTasks, state);
+        long instant = jsonObject.get("instant").getAsLong();
+        Instant instantObj = Instant.ofEpochMilli(instant);
+        return new Task(id, name, subTasks, state, instantObj);
     }
 }

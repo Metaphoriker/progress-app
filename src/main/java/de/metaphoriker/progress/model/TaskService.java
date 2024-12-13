@@ -2,6 +2,10 @@ package de.metaphoriker.progress.model;
 
 import com.google.inject.Inject;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+
 public class TaskService {
 
     private final TaskRepository taskRepository;
@@ -27,6 +31,10 @@ public class TaskService {
         Task completedTask = task.complete();
         delete(task);
         add(completedTask);
+    }
+
+    public Task createTask(String description) {
+        return new Task(taskDao.getLatestId() + 1, description, new ArrayList<>(), TaskState.OPEN, Instant.now());
     }
 
     public void loadAll() {
