@@ -1,8 +1,9 @@
 package de.metaphoriker.progress.model;
 
+import java.util.Date;
 import java.util.List;
 
-public record Task(long id, String description, List<Long> subTasks, TaskState state) {
+public record Task(long id, String description, List<Long> subTasks, TaskState state, Date date) {
 
     private static void validateDescription(String description) {
         if (description.length() > 250) {
@@ -19,6 +20,6 @@ public record Task(long id, String description, List<Long> subTasks, TaskState s
     }
 
     public Task complete() {
-        return new Task(id, description, subTasks, TaskState.DONE);
+        return new Task(id, description, subTasks, TaskState.DONE, date);
     }
 }
